@@ -1,0 +1,50 @@
+/*{-{*/
+
+C do
+    #define SDL_SIMUL
+end
+
+external _rand(), _srand();
+
+_srand(1);  // TODO
+
+par do
+    loop do
+        await 30min;
+        async do
+            emit SDL_REDRAW;
+        end
+    end
+with
+    loop do
+        var _SDL_MouseButtonEvent e;
+        e.type = _SDL_MOUSEBUTTONDOWN;
+        e.x = _rand() % win_w;
+        e.y = _rand() % win_h;
+        async (e) do
+            emit SDL_MOUSEBUTTONDOWN(&e);
+        end
+
+        var int v = _rand() % 500;
+        async (v) do
+            emit(v)ms;
+        end
+
+/*
+        async do
+            emit SDL_REDRAW;
+        end
+        _SDL_SetRenderDrawColor(ren, 0xFF,0x00,0xFF, 0);
+        var _SDL_Rect r;
+            r.x = e.x-7;
+            r.y = e.y-7;
+            r.w = 14;
+            r.h = 14;
+        _SDL_RenderFillRect(ren, &r);
+        _SDL_RenderPresent(ren);
+        _SDL_Delay(v);
+*/
+    end
+end
+
+/*}-}*/ dnl

@@ -1,0 +1,71 @@
+/*{-{*/
+
+var _SDL_Rect r;
+
+if pls_n == 1 then
+    r.w = win_w;
+    r.h = win_h - _BAR_H;
+
+    // player 1:
+        r.x = 0;
+        r.y = _BAR_H;
+        emit p1.go_redim = &r;
+
+else/if pls_n == 2 then
+    r.w = win_w / 2;
+    r.h = win_h - _BAR_H;
+    r.y = _BAR_H;
+
+    // player 1:
+        r.x = 0;
+        emit p1.go_redim = &r;
+
+    // player 2:
+        r.x = win_w / 2;
+        emit p2.go_redim = &r;
+
+else/if pls_n == 3 then
+    r.w = win_w / 3;
+    r.h = win_h - _BAR_H;
+    r.y = _BAR_H;
+
+    // player 1:
+        r.x = 0 * r.w;
+        emit p1.go_redim = &r;
+
+    // player 2:
+        r.x = 1 * r.w;
+        r.x = win_w / 3;
+        emit p2.go_redim = &r;
+
+    // player 3:
+        r.x = 2 * r.w;
+        emit p3.go_redim = &r;
+
+else/if pls_n == 4 then
+    r.w = win_w / 2;
+    r.h = (win_h-_BAR_H) / 2;
+
+    // player 1:
+        r.x = 0 * r.w;
+        r.y = _BAR_H+ 0 * r.h;
+        emit p1.go_redim = &r;
+
+    // player 2:
+        r.x = 1 * r.w;
+        r.y = _BAR_H+ 0 * r.h;
+        emit p2.go_redim = &r;
+
+    // player 3:
+        r.x = 0 * r.w;
+        r.y = _BAR_H+ 1 * r.h;
+        emit p3.go_redim = &r;
+
+    // player 4:
+        r.x = 1 * r.w;
+        r.y = _BAR_H+ 1 * r.h;
+        emit p4.go_redim = &r;
+
+end
+
+/*}-}*/ dnl

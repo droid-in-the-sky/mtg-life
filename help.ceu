@@ -1,0 +1,22 @@
+/*{-{*/
+
+
+loop do
+    int v = _rand(5);
+
+    // SDL_MOUSEBUTTON
+    if v == 1 then
+        _SDL_Event e;
+        e.type =;
+
+    else/if v == 2 then
+    end
+
+    int dt = _rand(1000);
+    async do
+        emit (dt)ms;
+    end
+    await 10ms;
+end
+
+/*}-}*/ dnl

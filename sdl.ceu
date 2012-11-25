@@ -1,0 +1,69 @@
+/*{-{*/
+
+external _printf();
+external _sprintf();
+external _char = 1;
+
+external _SDL_Rect  = 16,
+         _SDL_Point =  8,
+         _SDL_Color = 16,
+         _SDL_Event = 20,
+
+         _SDL_MouseButtonEvent = 20,
+         _SDL_Surface  = 0,
+         _SDL_Renderer = 0,
+         _SDL_Window   = 0,
+         _SDL_Texture  = 0,
+         _TTF_Font     = 0,
+         _Mix_Chunk    = 0;
+
+external _SDL_BUTTON_LEFT,
+         _SDL_BUTTON_RIGHT,
+         _SDL_MOUSEBUTTONDOWN,
+         _SDLK_ESCAPE,
+         _SDLK_p,
+         _SDL_RENDERER_ACCELERATED,
+         _SDL_RENDERER_PRESENTVSYNC,
+         _SDL_WINDOW_SHOWN,
+         _AUDIO_S16SYS;
+
+external _SDL_CreateWindow(),
+         _SDL_GetWindowSize(),
+         _SDL_CreateRenderer(),
+         _SDL_CreateTextureFromSurface(),
+         _SDL_SetRenderDrawColor(),
+         _SDL_RenderClear(),
+         _SDL_RenderDrawRect(),
+         _SDL_RenderFillRect(),
+         _SDL_RenderCopy(),
+         _SDL_RenderPresent(),
+         _SDL_DestroyRenderer(),
+         _SDL_DestroyWindow(),
+         _SDL_DestroyTexture(),
+         _SDL_FreeSurface(),
+         _SDL_Quit(),
+         _SDL_Delay(),
+         _IMG_LoadTexture(),
+         _TTF_Init(),
+         _TTF_RenderText_Solid(),
+         _TTF_RenderText_Shaded(),
+         _TTF_RenderText_Blended(),
+         _TTF_SizeText(),
+         _TTF_OpenFont(),
+         _Mix_LoadWAV(),
+         _Mix_FreeChunk(),
+         _Mix_PlayChannel(),
+         _Mix_Playing(),
+         _Mix_CloseAudio(),
+         _Mix_OpenAudio();
+
+external _SDL_Rect_vs_Point();
+
+C do
+    int SDL_Rect_vs_Point (SDL_Rect* r, SDL_Point* pt) {
+        return (pt->x >= r->x) && (pt->x <= r->x+r->w)
+            && (pt->y >= r->y) && (pt->y <= r->y+r->h);
+    }
+end
+
+/*}-}*/ dnl

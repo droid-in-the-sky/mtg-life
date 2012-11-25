@@ -1,0 +1,303 @@
+/*
+- TODO:
+- redim geral
+- 5 players
+- flip coin
+- Lua
+- help
+*/
+
+@include(sdl.ceu);
+
+external _BAR_H, _ICOS;
+C do
+    #define BAR_H 40
+
+    static SDL_Rect RECT;
+    SDL_Rect* IFC_Drawable__abs (void* this, SDL_Rect* r) {
+        RECT.x = r->x + IFC_Drawable_rect(this).x;
+        RECT.y = r->y + IFC_Drawable_rect(this).y;
+        RECT.w = r->w;
+        RECT.h = r->h;
+        return &RECT;
+    }
+    SDL_Rect* CLS_Player__abs (void* this, SDL_Rect* r) {
+        return IFC_Drawable__abs(this, r);
+    }
+    SDL_Rect* CLS_Counter__abs (void* this, SDL_Rect* r) {
+        return IFC_Drawable__abs(this, r);
+    }
+
+    SDL_Texture* ICOS[5];
+end
+
+input void START;
+input void SDL_REDRAW;
+input void SDL_QUIT;
+//input int  SDL_DT;
+input _SDL_KeyboardEvent*    SDL_KEYDOWN;
+input _SDL_MouseButtonEvent* SDL_MOUSEBUTTONDOWN;
+
+interface Global with
+    event _Mix_Chunk*   go_sound;
+    var _SDL_Renderer*  ren;
+    var _SDL_Texture*   tex_inc, tex_dec;
+    var _SDL_Texture*   tex_life, tex_poison;
+    var _TTF_Font*      font;
+    var _Mix_Chunk*     snd_click, snd_swap;
+    var int             mute?;
+end
+
+interface Drawable with
+    event void          go_redraw;
+    event _SDL_Rect*    go_redim;
+    event _SDL_Point*   go_click;
+    var   _SDL_Rect  rect;
+    external _abs();
+end
+
+// TODO: check all
+
+var int win_w;
+var int win_h;
+var _SDL_Window* win   := _SDL_CreateWindow("MTG Life",
+                        500, 1300, 400, 280, _SDL_WINDOW_SHOWN);
+var _SDL_Renderer* ren := _SDL_CreateRenderer(win, -1,
+                        _SDL_RENDERER_ACCELERATED|_SDL_RENDERER_PRESENTVSYNC);
+_SDL_GetWindowSize(win, &win_w, &win_h);
+
+var _SDL_Texture* tex_inc    := _IMG_LoadTexture(ren, "inc.png");
+var _SDL_Texture* tex_dec    := _IMG_LoadTexture(ren, "dec.png");
+var _SDL_Texture* tex_life   := _IMG_LoadTexture(ren, "life.png");
+var _SDL_Texture* tex_poison := _IMG_LoadTexture(ren, "poison.png");
+
+var _SDL_Texture* bar_new_tex     := _IMG_LoadTexture(ren, "new.png");
+var _SDL_Texture* bar_players_tex := _IMG_LoadTexture(ren, "players.png");
+var _SDL_Texture* bar_mute_tex    := _IMG_LoadTexture(ren, "mute.png");
+var _SDL_Texture* bar_no_tex      := _IMG_LoadTexture(ren, "no.png");
+//var _SDL_Texture* bar_help_tex    := _IMG_LoadTexture(ren, "help.png");
+var _SDL_Texture* bar_quit_tex    := _IMG_LoadTexture(ren, "quit.png");
+
+_ICOS[0] = _IMG_LoadTexture(ren, "MTG_White.ico");
+_ICOS[1] = _IMG_LoadTexture(ren, "MTG_Blue.ico");
+_ICOS[2] = _IMG_LoadTexture(ren, "MTG_Black.ico");
+_ICOS[3] = _IMG_LoadTexture(ren, "MTG_Red.ico");
+_ICOS[4] = _IMG_LoadTexture(ren, "MTG_Green.ico");
+
+_TTF_Init();
+var _TTF_Font* font := _TTF_OpenFont("Deutsch.ttf", 90);
+
+_Mix_OpenAudio(22050, _AUDIO_S16SYS, 2, 4096);
+event _Mix_Chunk* go_sound;
+var int mute? = 0;
+var _Mix_Chunk* snd_click := _Mix_LoadWAV("click.wav");
+var _Mix_Chunk* snd_swap  := _Mix_LoadWAV("swap.wav");
+
+event void go_new, go_quit;//, go_help;
+
+event int         pls_n = 2;
+event void        pls_redraw;
+event _SDL_Point* pls_click;
+
+@include(player.ceu);
+
+var int delta = _BAR_H / 2;
+
+var _SDL_Rect bar;
+    bar.x = 0;
+    bar.y = 0;
+    bar.w = win_w;
+    bar.h = _BAR_H;
+
+var _SDL_Rect bar_new;
+    bar_new.x = delta;
+    bar_new.y = 1;
+    bar_new.w = _BAR_H - 1;
+    bar_new.h = _BAR_H - 1;
+
+var _SDL_Rect bar_players;
+    bar_players.x = bar_new.x + bar_new.w + delta;
+    bar_players.y =   1;
+    bar_players.w = _BAR_H - 1;
+    bar_players.h = _BAR_H - 1;
+
+var _SDL_Rect bar_mute;
+    bar_mute.x = bar_players.x + bar_players.w + delta;
+    bar_mute.y =   1;
+    bar_mute.w = _BAR_H - 1;
+    bar_mute.h = _BAR_H - 1;
+
+var _SDL_Rect bar_quit;
+    bar_quit.x = win_w - _BAR_H - delta;
+    bar_quit.y = 1;
+    bar_quit.w = _BAR_H - 1;
+    bar_quit.h = _BAR_H - 1;
+
+/*
+var _SDL_Rect bar_help;
+    bar_help.x = bar_quit.x - _BAR_H - delta;
+    bar_help.y = 1;
+    bar_help.w = _BAR_H - 1;
+    bar_help.h = _BAR_H - 1;
+*/
+
+par/or do
+    await SDL_QUIT;
+with
+    await go_quit;
+    //do await FOREVER; end      // SIMUL
+with
+
+/**
+    // SIMUL
+    @include(simul.ceu);
+    // TODO: get allocated memory
+with
+**/
+
+    // SOUND
+    loop do
+        var _Mix_Chunk* snd = await/0 go_sound;
+        if not mute? then
+            _Mix_PlayChannel(-1, snd, 0);
+        end
+    end
+with
+
+    // CLICKS
+    loop do
+        var _SDL_MouseButtonEvent* but = await SDL_MOUSEBUTTONDOWN;
+        var _SDL_Point pt;
+            pt.x = but:x;
+            pt.y = but:y;
+
+        if _SDL_Rect_vs_Point(&bar_new, &pt) then
+            emit go_sound = snd_swap;
+            emit go_new;
+
+        else/if _SDL_Rect_vs_Point(&bar_players, &pt) then
+            emit go_sound = snd_swap;
+            emit pls_n = pls_n%4 + 1;
+
+        else/if _SDL_Rect_vs_Point(&bar_mute, &pt) then
+            mute? = not mute?;
+            emit go_sound = snd_swap;
+
+/*
+        else/if _SDL_Rect_vs_Point(&bar_help, &pt) then
+            emit go_sound = snd_swap;
+            emit go_help;
+*/
+
+        else/if _SDL_Rect_vs_Point(&bar_quit, &pt) then
+            emit go_sound = snd_swap;
+            emit go_quit;
+
+        else
+            emit pls_click = &pt;
+        end
+    end
+with
+
+    // REDRAW
+    loop do
+        await SDL_REDRAW;
+
+        _SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
+        _SDL_RenderClear(ren);
+
+        // bar
+        _SDL_SetRenderDrawColor(ren, 0x40,0x0D,0x12, 0);
+        _SDL_RenderFillRect(ren, &bar);
+            // new
+            _SDL_RenderCopy(ren, bar_new_tex,     null, &bar_new);
+            // players
+            _SDL_RenderCopy(ren, bar_players_tex, null, &bar_players);
+            // mute
+            _SDL_RenderCopy(ren, bar_mute_tex,    null, &bar_mute);
+            if mute? then
+                _SDL_RenderCopy(ren, bar_no_tex,  null, &bar_mute);
+            end
+            // help
+            //_SDL_RenderCopy(ren, bar_help_tex,    null, &bar_help);
+            // quit
+            _SDL_RenderCopy(ren, bar_quit_tex,    null, &bar_quit);
+
+        // players
+        emit pls_redraw;
+
+        _SDL_RenderPresent(ren);
+    end
+with
+
+    // PLAYER
+    loop do
+        var Player p1, p2, p3, p4;
+        p1.n = 0;
+        p2.n = 1;
+        p3.n = 2;
+        p4.n = 3;
+
+        par/or do
+            await go_new;
+        with
+            loop do
+                @include(redim_players.ceu);
+                await pls_n;
+            end
+        with
+            loop do
+                var _SDL_Point* pt = await pls_click;
+                emit p1.go_click = pt;
+                if pls_n > 1 then
+                    emit p2.go_click = pt;
+                end
+                if pls_n > 2 then
+                    emit p3.go_click = pt;
+                end
+                if pls_n > 3 then
+                    emit p4.go_click = pt;
+                end
+            end
+        with
+            loop do
+                await pls_redraw;
+                emit p1.go_redraw;
+                if pls_n > 1 then
+                    emit p2.go_redraw;
+                    if pls_n > 2 then
+                        emit p3.go_redraw;
+                        if pls_n > 3 then
+                            emit p4.go_redraw;
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+_Mix_FreeChunk(snd_click);
+_Mix_FreeChunk(snd_swap);
+//_Mix_CloseAudio();            // TODO: slow
+
+loop i, 5 do
+    _SDL_DestroyTexture(_ICOS[i]);
+end
+
+_SDL_DestroyTexture(bar_new_tex);
+_SDL_DestroyTexture(bar_players_tex);
+_SDL_DestroyTexture(bar_mute_tex);
+_SDL_DestroyTexture(bar_no_tex);
+//_SDL_DestroyTexture(bar_help_tex);
+_SDL_DestroyTexture(bar_quit_tex);
+
+_SDL_DestroyTexture(tex_inc);
+_SDL_DestroyTexture(tex_dec);
+_SDL_DestroyTexture(tex_life);
+_SDL_DestroyTexture(tex_poison);
+
+_SDL_DestroyRenderer(ren);
+_SDL_DestroyWindow(win);
+
+return 0;

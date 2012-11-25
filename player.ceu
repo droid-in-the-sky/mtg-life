@@ -1,0 +1,116 @@
+/*{-{*/
+
+external _CLRS, _CLRS_cur;
+C do
+    int CLRS[][3] = {
+        { 0xEE, 0xED, 0xF0 },
+        { 155, 210, 210 },
+        { 0x59, 0x4F, 0x52 },
+        { 0xFC, 0x6F, 0x8E },
+        { 0x96, 0xB5, 0x66 }
+    };
+    int CLRS_cur[] = { 0, 1, 2, 3 };
+end
+
+@include(counter.ceu);
+
+class Player with
+    event void          go_redraw;
+    event _SDL_Rect*    go_redim;
+    event _SDL_Point*   go_click;
+    var   _SDL_Rect rect;
+    var   int n;
+    external _abs();
+do
+    n = 0;
+
+    _COUNTER_VAL = 20;
+    var int life? = 1;
+    var Counter life;
+        life.tex_img = global:tex_life;
+
+    _COUNTER_VAL = 0;
+    var int poison? = 0;
+    var Counter poison;
+        poison.tex_img = global:tex_poison;
+
+    // color
+    event _SDL_Point* go_ico;
+    var _SDL_Rect ico_r;
+        ico_r.x = 10;
+        ico_r.y =  5;
+        ico_r.w = 50;
+        ico_r.h = 50;
+
+    par/or do
+        loop do
+            var _SDL_Rect* r = await/0 go_redim;
+            this.rect = *r;
+            emit life.go_redim = r;
+            emit poison.go_redim = r;
+        end
+    with
+        loop do
+            var _SDL_Point* pt = await go_click;
+            if _SDL_Rect_vs_Point(this._abs(&ico_r),pt) then
+                emit global:go_sound = global:snd_swap;
+                emit go_ico;
+            else/if life? then
+                emit life.go_click = pt;
+            else/if poison? then
+                emit poison.go_click = pt;
+            end
+        end
+    with
+        loop do
+            par/or do
+                await life.ok_swap;
+            with
+                await poison.ok_swap;
+            end
+            life?   = not life?;
+            poison? = not poison?;
+        end
+     with
+
+        // SWITCH COLORS
+        loop do
+            await go_ico;
+            _CLRS_cur[this.n] = (_CLRS_cur[n] + 1) % 5;
+        end
+    with
+
+        // REDRAW
+        do
+            var _SDL_Renderer* ren = global:ren;
+
+            loop do
+                await go_redraw;
+
+                // background
+                var int* clr = _CLRS[ _CLRS_cur[this.n] ];
+                _SDL_SetRenderDrawColor(ren, clr[0], clr[1], clr[2], 0);
+                _SDL_RenderFillRect(ren, &this.rect);
+
+                // frame
+                _SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
+                _SDL_RenderDrawRect(ren, &this.rect);
+
+                // color
+                _SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
+                //_SDL_RenderDrawRect(ren, this._abs(&ico_r));
+                _SDL_RenderCopy(ren, _ICOS[_CLRS_cur[this.n]],
+                                    null, this._abs(&ico_r));
+
+                // life / poison
+                if life? then
+                    emit life.go_redraw;
+                else/if poison? then
+                    emit poison.go_redraw;
+                end
+            end
+        end
+    end
+end
+
+/*}-}*/ dnl
