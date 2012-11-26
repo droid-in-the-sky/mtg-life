@@ -1,0 +1,10 @@
+.*.swp
+_ceu_*
+*.ceu_m4
+android-project/jni/SDL_*
+android-project/jni/freetype/
+android-project/jni/jpeg/
+android-project/jni/mikmod/
+android-project/jni/png/
+android-project/libs/
+android-project/obj/

@@ -1,0 +1,15 @@
+Free third-party fonts, images, and sounds:
+
+fnts/
+    - Deutsch.ttf           (http://br.dafont.com/james-fordyce.d170)
+
+imgs/
+    - MTG_*.ico             (http://hush66.deviantart.com/)
+    - [dec|inc|life
+      |mute|new|no
+      |players|quit].png    (http://www.icojam.com/blog/?p=177)
+    - poison.png            (?)
+
+snds/
+    - click.wav             (http://www.freesound.org/people/KorgMS2000B/)
+    - swap.wav              (http://www.freesound.org/people/junggle/)
