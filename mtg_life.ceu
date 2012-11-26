@@ -8,7 +8,6 @@
 - flip coin
 - Lua
 - help
-- README p/ resources com fontes
 - problema com this.rect = *r
 */
 
@@ -207,6 +206,7 @@ with
 
         else/if _SDL_Rect_vs_Point(&bar_quit, &pt) then
             emit go_sound = snd_swap;
+            await 100ms;     // TODO
             emit go_quit;
 
         else

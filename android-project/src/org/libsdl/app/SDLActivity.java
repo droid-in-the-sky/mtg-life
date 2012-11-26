@@ -86,8 +86,9 @@ public class SDLActivity extends Activity {
         SurfaceHolder holder = mSurface.getHolder();
     }
 
+/*
     // Events
-    /*protected void onPause() {
+    protected void onPause() {
         Log.v("SDL", "onPause()");
         super.onPause();
         // Don't call SDLActivity.nativePause(); here, it will be called by SDLSurface::surfaceDestroyed
@@ -97,7 +98,8 @@ public class SDLActivity extends Activity {
         Log.v("SDL", "onResume()");
         super.onResume();
         // Don't call SDLActivity.nativeResume(); here, it will be called via SDLSurface::surfaceChanged->SDLActivity::startApp
-    }*/
+    }
+*/
 
     protected void onDestroy() {
         super.onDestroy();
@@ -471,6 +473,8 @@ class SDLMain implements Runnable {
     public void run() {
         // Runs SDL_main()
         SDLActivity.nativeInit();
+
+        android.os.Process.killProcess(android.os.Process.myPid());
 
         //Log.v("SDL", "SDL thread terminated");
     }
