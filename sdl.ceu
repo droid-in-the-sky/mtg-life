@@ -4,12 +4,18 @@ external _printf();
 external _sprintf();
 external _char = 1;
 
+//#ifdef __ANDROID__ // TODO: m4
+external ___android_log_print();
+//___android_log_print(4, "MTG_LIFE", "DEPOIS p=%p", this);
+//#endif
+
 external _SDL_Rect  = 16,
          _SDL_Point =  8,
          _SDL_Color = 16,
          _SDL_Event = 20,
-
          _SDL_MouseButtonEvent = 20,
+         _SDL_KeyboardEvent = 20,
+         _SDL_WindowEvent = 20,
          _SDL_Surface  = 0,
          _SDL_Renderer = 0,
          _SDL_Window   = 0,
@@ -17,17 +23,21 @@ external _SDL_Rect  = 16,
          _TTF_Font     = 0,
          _Mix_Chunk    = 0;
 
-external _SDL_BUTTON_LEFT,
+external _SDL_TRUE, _SDL_FALSE,
+         _SDL_BUTTON_LEFT,
          _SDL_BUTTON_RIGHT,
          _SDL_MOUSEBUTTONDOWN,
          _SDLK_ESCAPE,
          _SDLK_p,
+         _SDL_SCANCODE_AC_BACK,
          _SDL_RENDERER_ACCELERATED,
          _SDL_RENDERER_PRESENTVSYNC,
          _SDL_WINDOW_SHOWN,
+         _SDL_WINDOW_RESIZABLE,
          _AUDIO_S16SYS;
 
 external _SDL_CreateWindow(),
+         _SDL_SetWindowFullscreen(),
          _SDL_GetWindowSize(),
          _SDL_CreateRenderer(),
          _SDL_CreateTextureFromSurface(),

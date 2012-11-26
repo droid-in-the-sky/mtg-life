@@ -1,17 +1,22 @@
 /*
 - TODO:
+- disable opengl on android?
+- tamanho hist
+- resizable win
 - redim geral
 - 5 players
 - flip coin
 - Lua
 - help
+- README p/ resources com fontes
+- problema com this.rect = *r
 */
 
 @include(sdl.ceu);
 
 external _BAR_H, _ICOS;
 C do
-    #define BAR_H 40
+    #define BAR_H 60
 
     static SDL_Rect RECT;
     SDL_Rect* IFC_Drawable__abs (void* this, SDL_Rect* r) {
@@ -35,6 +40,7 @@ input void START;
 input void SDL_REDRAW;
 input void SDL_QUIT;
 //input int  SDL_DT;
+//input _SDL_WindowEvent*      SDL_WINDOWEVENT;
 input _SDL_KeyboardEvent*    SDL_KEYDOWN;
 input _SDL_MouseButtonEvent* SDL_MOUSEBUTTONDOWN;
 
@@ -61,37 +67,40 @@ end
 var int win_w;
 var int win_h;
 var _SDL_Window* win   := _SDL_CreateWindow("MTG Life",
-                        500, 1300, 400, 280, _SDL_WINDOW_SHOWN);
-var _SDL_Renderer* ren := _SDL_CreateRenderer(win, -1,
-                        _SDL_RENDERER_ACCELERATED|_SDL_RENDERER_PRESENTVSYNC);
+                        500, 1300, 800, 480, _SDL_WINDOW_SHOWN);
+//_SDL_WINDOW_RESIZABLE);
+//_SDL_SetWindowFullscreen(win, _SDL_TRUE);
 _SDL_GetWindowSize(win, &win_w, &win_h);
 
-var _SDL_Texture* tex_inc    := _IMG_LoadTexture(ren, "inc.png");
-var _SDL_Texture* tex_dec    := _IMG_LoadTexture(ren, "dec.png");
-var _SDL_Texture* tex_life   := _IMG_LoadTexture(ren, "life.png");
-var _SDL_Texture* tex_poison := _IMG_LoadTexture(ren, "poison.png");
+var _SDL_Renderer* ren := _SDL_CreateRenderer(win, -1,
+                        _SDL_RENDERER_ACCELERATED|_SDL_RENDERER_PRESENTVSYNC);
 
-var _SDL_Texture* bar_new_tex     := _IMG_LoadTexture(ren, "new.png");
-var _SDL_Texture* bar_players_tex := _IMG_LoadTexture(ren, "players.png");
-var _SDL_Texture* bar_mute_tex    := _IMG_LoadTexture(ren, "mute.png");
-var _SDL_Texture* bar_no_tex      := _IMG_LoadTexture(ren, "no.png");
-//var _SDL_Texture* bar_help_tex    := _IMG_LoadTexture(ren, "help.png");
-var _SDL_Texture* bar_quit_tex    := _IMG_LoadTexture(ren, "quit.png");
+var _SDL_Texture* tex_inc    := _IMG_LoadTexture(ren, "imgs/inc.png");
+var _SDL_Texture* tex_dec    := _IMG_LoadTexture(ren, "imgs/dec.png");
+var _SDL_Texture* tex_life   := _IMG_LoadTexture(ren, "imgs/life.png");
+var _SDL_Texture* tex_poison := _IMG_LoadTexture(ren, "imgs/poison.png");
 
-_ICOS[0] = _IMG_LoadTexture(ren, "MTG_White.ico");
-_ICOS[1] = _IMG_LoadTexture(ren, "MTG_Blue.ico");
-_ICOS[2] = _IMG_LoadTexture(ren, "MTG_Black.ico");
-_ICOS[3] = _IMG_LoadTexture(ren, "MTG_Red.ico");
-_ICOS[4] = _IMG_LoadTexture(ren, "MTG_Green.ico");
+var _SDL_Texture* bar_new_tex     := _IMG_LoadTexture(ren, "imgs/new.png");
+var _SDL_Texture* bar_players_tex := _IMG_LoadTexture(ren, "imgs/players.png");
+var _SDL_Texture* bar_mute_tex    := _IMG_LoadTexture(ren, "imgs/mute.png");
+var _SDL_Texture* bar_no_tex      := _IMG_LoadTexture(ren, "imgs/no.png");
+//var _SDL_Texture* bar_help_tex    := _IMG_LoadTexture(ren, "imgs/help.png");
+var _SDL_Texture* bar_quit_tex    := _IMG_LoadTexture(ren, "imgs/quit.png");
+
+_ICOS[0] = _IMG_LoadTexture(ren, "imgs/MTG_White.ico");
+_ICOS[1] = _IMG_LoadTexture(ren, "imgs/MTG_Blue.ico");
+_ICOS[2] = _IMG_LoadTexture(ren, "imgs/MTG_Black.ico");
+_ICOS[3] = _IMG_LoadTexture(ren, "imgs/MTG_Red.ico");
+_ICOS[4] = _IMG_LoadTexture(ren, "imgs/MTG_Green.ico");
 
 _TTF_Init();
-var _TTF_Font* font := _TTF_OpenFont("Deutsch.ttf", 90);
+var _TTF_Font* font := _TTF_OpenFont("fnts/Deutsch.ttf", 90);
 
 _Mix_OpenAudio(22050, _AUDIO_S16SYS, 2, 4096);
 event _Mix_Chunk* go_sound;
 var int mute? = 0;
-var _Mix_Chunk* snd_click := _Mix_LoadWAV("click.wav");
-var _Mix_Chunk* snd_swap  := _Mix_LoadWAV("swap.wav");
+var _Mix_Chunk* snd_click := _Mix_LoadWAV("snds/click.wav");
+var _Mix_Chunk* snd_swap  := _Mix_LoadWAV("snds/swap.wav");
 
 event void go_new, go_quit;//, go_help;
 
@@ -146,6 +155,13 @@ par/or do
 with
     await go_quit;
     //do await FOREVER; end      // SIMUL
+with
+    loop do
+        var _SDL_KeyboardEvent* key = await SDL_KEYDOWN;
+        if key:keysym.scancode == _SDL_SCANCODE_AC_BACK then
+            break;
+        end
+    end
 with
 
 /**
@@ -279,7 +295,7 @@ end
 
 _Mix_FreeChunk(snd_click);
 _Mix_FreeChunk(snd_swap);
-//_Mix_CloseAudio();            // TODO: slow
+_Mix_CloseAudio();            // TODO: slow
 
 loop i, 5 do
     _SDL_DestroyTexture(_ICOS[i]);

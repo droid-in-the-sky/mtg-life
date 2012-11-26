@@ -127,7 +127,12 @@ do
     with
         loop do
             var _SDL_Rect* r = await/0 go_redim;
-            this.rect = *r;
+            //this.rect = *r;
+                this.rect.x = r:x;
+                this.rect.y = r:y;
+                this.rect.w = r:w;
+                this.rect.h = r:h;
+
             // num
                 if r:w < r:h then
                     num_r.w = r:w / 3;
@@ -158,12 +163,12 @@ do
                 inc_r.w = num_r.h/2;
                 inc_r.h = num_r.h/2;
                 inc_r.x = (r:w - inc_r.w) / 2;
-                inc_r.y = num_r.y - inc_r.h - 10;
+                inc_r.y = num_r.y - inc_r.h - num_r.h/7;
             //dec
                 dec_r.w = num_r.h/2;
                 dec_r.h = num_r.h/2;
                 dec_r.x = (r:w - dec_r.w) / 2;
-                dec_r.y = num_r.y + num_r.h - 10;     // -10 ?
+                dec_r.y = num_r.y + num_r.h - num_r.h/7;     // minus?
             // hist
                 hist_r.x = (r:w - hist_r.w) / 2;
                 hist_r.y = r:h - _HIST_H;

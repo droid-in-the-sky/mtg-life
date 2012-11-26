@@ -1,8 +1,16 @@
 #include <stdio.h>
+
+#ifdef __ANDROID__
+#include "SDL.h"
+#include "SDL_image.h"
+#include "SDL_mixer.h"
+#include "SDL_ttf.h"
+#else
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
 #include "SDL2/SDL_mixer.h"
 #include "SDL2/SDL_ttf.h"
+#endif
 
 #include <stdint.h>
 typedef int64_t  s64;
@@ -28,7 +36,11 @@ int ASYNC_nxt = 0;
 
 #include "_ceu_code.cceu"
 
+#ifdef __ANDROID__
+int SDL_main (int argc, char *argv[])
+#else
 int main (int argc, char *argv[])
+#endif
 {
     int ret;
 
@@ -76,47 +88,54 @@ int main (int argc, char *argv[])
         if (has)
         {
             switch (evt.type) {
-    #ifdef IN_SDL_QUIT
+#ifdef IN_SDL_QUIT
                 case SDL_QUIT:
                     if (ceu_go_event(&ret, IN_SDL_QUIT, NULL))
                         goto END;
                     break;
-    #endif
-    #ifdef IN_SDL_KEYDOWN
+#endif
+#ifdef IN_SDL_KEYDOWN
                 case SDL_KEYDOWN: {
                     if (ceu_go_event(&ret, IN_SDL_KEYDOWN, &evt))
                         goto END;
                     break;
                 }
-    #endif
-    #ifdef IN_SDL_KEYUP
+#endif
+#ifdef IN_SDL_KEYUP
                 case SDL_KEYUP: {
                     if (ceu_go_event(&ret, IN_SDL_KEYUP, &evt))
                         goto END;
                     break;
                 }
-    #endif
-    #ifdef IN_SDL_MOUSEMOTION
+#endif
+#ifdef IN_SDL_MOUSEMOTION
                 case SDL_MOUSEMOTION: {
                     if (ceu_go_event(&ret, IN_SDL_MOUSEMOTION, &evt))
                         goto END;
                     break;
                 }
-    #endif
-    #ifdef IN_SDL_MOUSEBUTTONDOWN
+#endif
+#ifdef IN_SDL_MOUSEBUTTONDOWN
                 case SDL_MOUSEBUTTONDOWN: {
                     if (ceu_go_event(&ret, IN_SDL_MOUSEBUTTONDOWN, &evt))
                         goto END;
                     break;
                 }
-    #endif
-    #ifdef IN_SDL_MOUSEBUTTONUP
+#endif
+#ifdef IN_SDL_MOUSEBUTTONUP
                 case SDL_MOUSEBUTTONUP: {
                     if (ceu_go_event(&ret, IN_SDL_MOUSEBUTTONUP, &evt))
                         goto END;
                     break;
                 }
-    #endif
+#endif
+#ifdef IN_SDL_WINDOWEVENT
+                case SDL_WINDOWEVENT: {
+                    if (ceu_go_event(&ret, IN_SDL_WINDOWEVENT, &evt))
+                        goto END;
+                    break;
+                }
+#endif
             }
         }
 
@@ -156,7 +175,7 @@ int main (int argc, char *argv[])
 #endif
     }
 END:
-    //SDL_Quit();         // TODO: slow
+    SDL_Quit();         // TODO: slow
     return ret;
 }
 

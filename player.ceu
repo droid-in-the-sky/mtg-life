@@ -4,9 +4,9 @@ external _CLRS, _CLRS_cur;
 C do
     int CLRS[][3] = {
         { 0xEE, 0xED, 0xF0 },
-        { 155, 210, 210 },
+        { 0x9B, 0xD2, 0xD2 },
         { 0x59, 0x4F, 0x52 },
-        { 0xFC, 0x6F, 0x8E },
+        { 0xF8, 0x5E, 0x53 },
         { 0x96, 0xB5, 0x66 }
     };
     int CLRS_cur[] = { 0, 1, 2, 3 };
@@ -37,15 +37,28 @@ do
     // color
     event _SDL_Point* go_ico;
     var _SDL_Rect ico_r;
-        ico_r.x = 10;
-        ico_r.y =  5;
-        ico_r.w = 50;
-        ico_r.h = 50;
 
     par/or do
         loop do
             var _SDL_Rect* r = await/0 go_redim;
-            this.rect = *r;
+            //this.rect = *r;
+                this.rect.x = r:x;
+                this.rect.y = r:y;
+                this.rect.w = r:w;
+                this.rect.h = r:h;
+
+            // ico
+                var int min;
+                if r:w < r:h then
+                    min = r:w;
+                else
+                    min = r:h;
+                end
+                ico_r.x = min / 20;
+                ico_r.y = min / 20;
+                ico_r.w = min / 5;
+                ico_r.h = min / 5;
+
             emit life.go_redim = r;
             emit poison.go_redim = r;
         end
