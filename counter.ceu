@@ -127,11 +127,7 @@ do
     with
         loop do
             var _SDL_Rect* r = await/0 go_redim;
-            //this.rect = *r;
-                this.rect.x = r:x;
-                this.rect.y = r:y;
-                this.rect.w = r:w;
-                this.rect.h = r:h;
+            this.rect = *r;
 
             // num
                 if r:w < r:h then

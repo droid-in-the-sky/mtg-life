@@ -3,12 +3,11 @@
 - disable opengl on android?
 - tamanho hist
 - resizable win
-- redim geral
 - 5 players
 - flip coin
 - Lua
 - help
-- problema com this.rect = *r
+- quit on power or redraw right
 */
 
 @include(sdl.ceu);

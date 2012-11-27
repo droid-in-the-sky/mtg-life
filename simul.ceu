@@ -6,23 +6,24 @@ end
 
 external _rand(), _srand();
 
-_srand(1);  // TODO
+_srand(15);  // TODO
 
 par do
     loop do
-        await 30min;
+        await 5min;
         async do
             emit SDL_REDRAW;
         end
     end
 with
     loop do
-        var _SDL_MouseButtonEvent e;
+        var _SDL_MouseButtonEvent  e;
+        var _SDL_MouseButtonEvent* pe = &e;
         e.type = _SDL_MOUSEBUTTONDOWN;
         e.x = _rand() % win_w;
         e.y = _rand() % win_h;
-        async (e) do
-            emit SDL_MOUSEBUTTONDOWN(&e);
+        async (pe) do
+            emit SDL_MOUSEBUTTONDOWN(pe);
         end
 
         var int v = _rand() % 500;
