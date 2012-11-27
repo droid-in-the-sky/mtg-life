@@ -85,11 +85,11 @@ var _SDL_Texture* bar_no_tex      := _IMG_LoadTexture(ren, "imgs/no.png");
 //var _SDL_Texture* bar_help_tex    := _IMG_LoadTexture(ren, "imgs/help.png");
 var _SDL_Texture* bar_quit_tex    := _IMG_LoadTexture(ren, "imgs/quit.png");
 
-_ICOS[0] = _IMG_LoadTexture(ren, "imgs/MTG_White.ico");
-_ICOS[1] = _IMG_LoadTexture(ren, "imgs/MTG_Blue.ico");
-_ICOS[2] = _IMG_LoadTexture(ren, "imgs/MTG_Black.ico");
-_ICOS[3] = _IMG_LoadTexture(ren, "imgs/MTG_Red.ico");
-_ICOS[4] = _IMG_LoadTexture(ren, "imgs/MTG_Green.ico");
+_ICOS[0] = _IMG_LoadTexture(ren, "imgs/MTG_White.png");
+_ICOS[1] = _IMG_LoadTexture(ren, "imgs/MTG_Blue.png");
+_ICOS[2] = _IMG_LoadTexture(ren, "imgs/MTG_Black.png");
+_ICOS[3] = _IMG_LoadTexture(ren, "imgs/MTG_Red.png");
+_ICOS[4] = _IMG_LoadTexture(ren, "imgs/MTG_Green.png");
 
 _TTF_Init();
 var _TTF_Font* font := _TTF_OpenFont("fnts/Deutsch.ttf", 90);
