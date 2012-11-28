@@ -1,4 +1,4 @@
-package org.mtgdroid.mtg_life;
+package org.droid_in_the_sky.mtg_life;
 
 import org.libsdl.app.SDLActivity;
 import android.os.*;
