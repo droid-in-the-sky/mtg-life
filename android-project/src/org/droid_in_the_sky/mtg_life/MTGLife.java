@@ -16,9 +16,12 @@ public class MTGLife extends SDLActivity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
+/*
     protected void onDestroy() {
         super.onDestroy();
+        //android.os.Process.killProcess(android.os.Process.myPid());
     }
+*/
     public void onConfigurationChanged (Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         android.os.Process.killProcess(android.os.Process.myPid());

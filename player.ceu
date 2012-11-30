@@ -1,6 +1,6 @@
 /*{-{*/
 
-external _CLRS, _CLRS_cur;
+C _CLRS, _CLRS_cur;
 C do
     int CLRS[][3] = {
         { 0xEE, 0xED, 0xF0 },
@@ -20,7 +20,7 @@ class Player with
     event _SDL_Point*   go_click;
     var   _SDL_Rect rect;
     var   int n;
-    external _abs();
+    C nohold _abs();
 do
     n = 0;
 

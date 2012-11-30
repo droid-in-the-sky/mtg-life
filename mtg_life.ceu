@@ -12,7 +12,7 @@
 
 @include(sdl.ceu);
 
-external _BAR_H, _ICOS;
+C _BAR_H, _ICOS;
 C do
     #define BAR_H 60
 
@@ -48,7 +48,7 @@ interface Global with
     var _SDL_Texture*   tex_inc, tex_dec;
     var _SDL_Texture*   tex_life, tex_poison;
     var _TTF_Font*      font;
-    var _Mix_Chunk*     snd_click, snd_swap;
+    var _Mix_Chunk*     snd_click, snd_swap, snd_dice;
     var int             mute?;
 end
 
@@ -57,7 +57,7 @@ interface Drawable with
     event _SDL_Rect*    go_redim;
     event _SDL_Point*   go_click;
     var   _SDL_Rect  rect;
-    external _abs();
+    C nohold _abs();
 end
 
 // TODO: check all
@@ -78,12 +78,13 @@ var _SDL_Texture* tex_dec    := _IMG_LoadTexture(ren, "imgs/dec.png");
 var _SDL_Texture* tex_life   := _IMG_LoadTexture(ren, "imgs/life.png");
 var _SDL_Texture* tex_poison := _IMG_LoadTexture(ren, "imgs/poison.png");
 
-var _SDL_Texture* bar_new_tex     := _IMG_LoadTexture(ren, "imgs/new.png");
-var _SDL_Texture* bar_players_tex := _IMG_LoadTexture(ren, "imgs/players.png");
-var _SDL_Texture* bar_mute_tex    := _IMG_LoadTexture(ren, "imgs/mute.png");
-var _SDL_Texture* bar_no_tex      := _IMG_LoadTexture(ren, "imgs/no.png");
-//var _SDL_Texture* bar_help_tex    := _IMG_LoadTexture(ren, "imgs/help.png");
-var _SDL_Texture* bar_quit_tex    := _IMG_LoadTexture(ren, "imgs/quit.png");
+var _SDL_Texture* tex_new    := _IMG_LoadTexture(ren, "imgs/new.png");
+var _SDL_Texture* tex_plrs   := _IMG_LoadTexture(ren, "imgs/players.png");
+var _SDL_Texture* tex_mute   := _IMG_LoadTexture(ren, "imgs/mute.png");
+var _SDL_Texture* tex_no     := _IMG_LoadTexture(ren, "imgs/no.png");
+var _SDL_Texture* tex_dice   := _IMG_LoadTexture(ren, "imgs/dice.png");
+//var _SDL_Texture* tex_help := _IMG_LoadTexture(ren, "imgs/help.png");
+var _SDL_Texture* tex_quit   := _IMG_LoadTexture(ren, "imgs/quit.png");
 
 _ICOS[0] = _IMG_LoadTexture(ren, "imgs/MTG_White.png");
 _ICOS[1] = _IMG_LoadTexture(ren, "imgs/MTG_Blue.png");
@@ -94,11 +95,30 @@ _ICOS[4] = _IMG_LoadTexture(ren, "imgs/MTG_Green.png");
 _TTF_Init();
 var _TTF_Font* font := _TTF_OpenFont("fnts/Deutsch.ttf", 90);
 
+var int dice? = 0;
+var int dice_v;
+var _SDL_Texture*[20] dice_nums;
+do
+    var _SDL_Color clr;
+        clr.r = 255;
+        clr.g = 255;
+        clr.b = 255;
+    loop i, 20 do
+        var _char[5] str;
+        _sprintf(str, "%d%d", (i+1)/10, (i+1)%10);
+        var _SDL_Surface* sfc :=
+                _TTF_RenderText_Blended(font, str, clr);
+        dice_nums[i] := _SDL_CreateTextureFromSurface(ren, sfc);
+        _SDL_FreeSurface(sfc);
+    end
+end
+
 _Mix_OpenAudio(22050, _AUDIO_S16SYS, 2, 4096);
 event _Mix_Chunk* go_sound;
 var int mute? = 0;
 var _Mix_Chunk* snd_click := _Mix_LoadWAV("snds/click.wav");
 var _Mix_Chunk* snd_swap  := _Mix_LoadWAV("snds/swap.wav");
+var _Mix_Chunk* snd_dice  := _Mix_LoadWAV("snds/dice.wav");
 
 event void go_new, go_quit;//, go_help;
 
@@ -107,6 +127,9 @@ event void        pls_redraw;
 event _SDL_Point* pls_click;
 
 @include(player.ceu);
+
+C _rand(), _srand(), _time();
+_srand(_time(null));
 
 var int delta = _BAR_H / 2;
 
@@ -133,6 +156,12 @@ var _SDL_Rect bar_mute;
     bar_mute.y =   1;
     bar_mute.w = _BAR_H - 1;
     bar_mute.h = _BAR_H - 1;
+
+var _SDL_Rect bar_dice;
+    bar_dice.x = bar_mute.x + bar_mute.w + delta;
+    bar_dice.y =   1;
+    bar_dice.w = _BAR_H - 1;
+    bar_dice.h = _BAR_H - 1;
 
 var _SDL_Rect bar_quit;
     bar_quit.x = win_w - _BAR_H - delta;
@@ -197,6 +226,14 @@ with
             mute? = not mute?;
             emit go_sound = snd_swap;
 
+        else/if _SDL_Rect_vs_Point(&bar_dice, &pt) then
+            emit go_sound = snd_dice;
+            await 1s500ms;
+            dice?  = 1;
+            dice_v = _rand() % 20;
+            await SDL_MOUSEBUTTONDOWN;
+            dice? = 0;
+
 /*
         else/if _SDL_Rect_vs_Point(&bar_help, &pt) then
             emit go_sound = snd_swap;
@@ -225,21 +262,46 @@ with
         _SDL_SetRenderDrawColor(ren, 0x40,0x0D,0x12, 0);
         _SDL_RenderFillRect(ren, &bar);
             // new
-            _SDL_RenderCopy(ren, bar_new_tex,     null, &bar_new);
+            _SDL_RenderCopy(ren, tex_new,    null, &bar_new);
             // players
-            _SDL_RenderCopy(ren, bar_players_tex, null, &bar_players);
+            _SDL_RenderCopy(ren, tex_plrs,   null, &bar_players);
             // mute
-            _SDL_RenderCopy(ren, bar_mute_tex,    null, &bar_mute);
+            _SDL_RenderCopy(ren, tex_mute,   null, &bar_mute);
             if mute? then
-                _SDL_RenderCopy(ren, bar_no_tex,  null, &bar_mute);
+                _SDL_RenderCopy(ren, tex_no, null, &bar_mute);
             end
+            // dice
+            _SDL_RenderCopy(ren, tex_dice,   null, &bar_dice);
             // help
-            //_SDL_RenderCopy(ren, bar_help_tex,    null, &bar_help);
+            //_SDL_RenderCopy(ren, tex_help, null, &bar_help);
             // quit
-            _SDL_RenderCopy(ren, bar_quit_tex,    null, &bar_quit);
+            _SDL_RenderCopy(ren, tex_quit,   null, &bar_quit);
 
         // players
         emit pls_redraw;
+
+        if dice? then
+            var _SDL_Rect r;
+                r.x = (win_w-400) / 2;
+                r.y = (win_h-300) / 2;
+                r.w = 400;
+                r.h = 300;
+            _SDL_SetRenderDrawColor(ren, 0x40,0x0D,0x12, 0);
+            _SDL_RenderFillRect(ren, &r);
+            _SDL_SetRenderDrawColor(ren, 0x00,0x00,0x00, 0);
+            _SDL_RenderDrawRect(ren, &r);
+
+                r.x = (win_w-200) / 2;
+                r.y = (win_h-200) / 2;
+                r.w = 200;
+                r.h = 200;
+            _SDL_RenderCopy(ren, tex_dice, null, &r);
+                r.x = (win_w-50) / 2 -  4;
+                r.y = (win_h-50) / 2 + 10;
+                r.w = 50;
+                r.h = 50;
+            _SDL_RenderCopy(ren, dice_nums[dice_v], null, &r);
+        end
 
         _SDL_RenderPresent(ren);
     end
@@ -294,18 +356,24 @@ end
 
 _Mix_FreeChunk(snd_click);
 _Mix_FreeChunk(snd_swap);
+_Mix_FreeChunk(snd_dice);
 _Mix_CloseAudio();            // TODO: slow
 
 loop i, 5 do
     _SDL_DestroyTexture(_ICOS[i]);
 end
 
-_SDL_DestroyTexture(bar_new_tex);
-_SDL_DestroyTexture(bar_players_tex);
-_SDL_DestroyTexture(bar_mute_tex);
-_SDL_DestroyTexture(bar_no_tex);
-//_SDL_DestroyTexture(bar_help_tex);
-_SDL_DestroyTexture(bar_quit_tex);
+loop i, 20 do
+    _SDL_DestroyTexture(dice_nums[i]);
+end
+
+_SDL_DestroyTexture(tex_new);
+_SDL_DestroyTexture(tex_plrs);
+_SDL_DestroyTexture(tex_mute);
+_SDL_DestroyTexture(tex_no);
+_SDL_DestroyTexture(tex_dice);
+//_SDL_DestroyTexture(tex_help);
+_SDL_DestroyTexture(tex_quit);
 
 _SDL_DestroyTexture(tex_inc);
 _SDL_DestroyTexture(tex_dec);

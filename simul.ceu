@@ -4,9 +4,9 @@ C do
     #define SDL_SIMUL
 end
 
-external _rand(), _srand();
+C _rand(), _srand(), _time();
 
-_srand(15);  // TODO
+_srand(_time(null));
 
 par do
     loop do

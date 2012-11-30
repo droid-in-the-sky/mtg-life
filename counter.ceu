@@ -1,7 +1,7 @@
 /*{-{*/
 
-external _HIST_H, _HIST_MAX, _hist_t=8;
-external _COUNTER_VAL;
+C _HIST_H, _HIST_MAX, _hist_t=8;
+C _COUNTER_VAL;
 
 C do
     #define ICON_H   50
@@ -24,7 +24,7 @@ class Counter with
     var _SDL_Rect  rect;
     var _SDL_Texture* tex_img;      // parent *must* set it
 
-    external _abs();
+    C nohold _abs();
 do
     counter = _COUNTER_VAL;     // TODO: constructor
 
