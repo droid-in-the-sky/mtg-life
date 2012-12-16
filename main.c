@@ -16,6 +16,7 @@
 #include "SDL2/SDL_opengl.h"
 #endif
 
+#include <assert.h>
 #include <stdint.h>
 typedef int64_t  s64;
 typedef int32_t  s32;

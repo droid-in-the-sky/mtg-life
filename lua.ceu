@@ -1,14 +1,18 @@
 /*{-{*/
 
 C do
+    /******/
     #include <lua.h>
     #include <lauxlib.h>
 
     int ceu_lua_atpanic (lua_State* lua) {
+#ifdef CEU_DEBUG
         fprintf(stderr, "LUA_ATPANIC on %d: %s\n",
                 CEU.trk.lbl, lua_tostring(lua,-1));
+#endif
         return 0;
     }
+    /******/
 end
 
 C _lua_State = 0;

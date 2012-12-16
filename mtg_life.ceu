@@ -5,6 +5,7 @@
 - quit on power or redraw right
 - quit on BACK
 - +5 / -5
+- liha preta sobrando
 */
 
 @include(sdl.ceu);
@@ -135,9 +136,12 @@ C _rand(), _srand(), _time();
 _srand(_time(null));
 
 var int idx = _lua_gettop(lua);
-_luaL_dofile(lua, "lua/global.lua");
+@ifdef(`ANDROID',`
 _luaL_dofile(lua,
     "/data/data/org.droid_in_the_sky.mtg_life/lib/lib_lua_global.so");
+',`
+_luaL_dofile(lua, "lua/global.lua");
+')
 _lua_settop(lua, idx);
 
 do      // LOCALS
