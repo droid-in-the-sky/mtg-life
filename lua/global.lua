@@ -51,8 +51,8 @@ grid_main = {
 }
 
 grid_counter = {
-    pad_x = PAD_X,
-    pad_y = PAD_Y,
+    pad_x = 1/50,
+    pad_y = 1/50,
     lay = {
         lins = 3,
         cols = 3,

@@ -256,6 +256,9 @@ do      // LOCALS
         // REDRAW
         loop do
             await SDL_REDRAW;
+            _SDL_SetRenderDrawColor(ren, 0x00,0x00,0x00, 0);
+            _SDL_RenderFillRect(ren, &win_rect);
+
             emit main.grid.go_redraw;
 
             if mute? then

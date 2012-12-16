@@ -54,7 +54,7 @@ do
             emit poison.grid:go_redim = r;
 
             // swp
-                var _SDL_Rect* rd = &life.grid:ui_rects[1];
+                var _SDL_Rect* rd = &life.grid:cell_rects[1];
                 swp_r.x = rd:x - swp_r.w - rd:w/10;
                 swp_r.y = rd:y + (rd:h-swp_r.h)/2;
 

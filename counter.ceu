@@ -32,9 +32,11 @@ do
             else/if it == 3 then    // DEC
                 emit global:go_sound = global:snd_click;
                 emit this.counter = counter-1;
-            else/if it == 4 then
-                emit global:go_sound = global:snd_click;
-                emit counter = hist_cur;
+            else/if it == 4 then    // HIST
+                if lg.grid.uis[3] != null then
+                    emit global:go_sound = global:snd_click;
+                    emit counter = hist_cur;
+                end
             end
         end
     with

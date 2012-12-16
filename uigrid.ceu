@@ -126,7 +126,6 @@ do
                 one_xx = (rect.w-spc_xx)/lay_cols - spc_xx - 2*pad_xx;
             else
                 one_xx = one_x * global:win_rect.w;
-                rect.x = (spc_xx + 2*pad_xx + one_xx) * lay_cols + spc_xx;
             end
 
             var int one_yy = one_y;
@@ -134,8 +133,15 @@ do
                 one_yy = (rect.h-spc_yy)/lay_lins - spc_yy - 2*pad_yy;
             else
                 one_yy = one_y * global:win_rect.h;
-                rect.h = (spc_yy + 2*pad_yy + one_yy) * lay_lins + spc_yy;
             end
+
+            // adjust to calculated size
+            var int w = (spc_xx + 2*pad_xx + one_xx) * lay_cols + spc_xx;
+            var int h = (spc_yy + 2*pad_yy + one_yy) * lay_lins + spc_yy;
+            rect.x = rect.x + (rect.w - w) / 2;
+            rect.y = rect.y + (rect.h - h) / 2;
+            rect.w = w;
+            rect.h = h;
 
             var int cur = 0;
             var int x, y;
