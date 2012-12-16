@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.droid_in_the_sky.mtg_life"
-      android:versionCode="1"
-      android:versionName="1.0">
+      android:versionCode="3"
+      android:versionName="1.2">
 <!--
       android:installLocation="auto">
 -->
@@ -21,8 +21,10 @@
 	         android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         <activity android:name="MTGLife"
                   android:label="@string/app_name"
-                  android:configChanges="orientation"
                   android:screenOrientation="landscape">
+<!--
+                  android:configChanges="orientation"
+-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -39,7 +41,6 @@
 
     <!-- Allow writing to external storage
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    -->
-
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    -->
 </manifest> 

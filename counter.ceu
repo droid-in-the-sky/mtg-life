@@ -1,210 +1,100 @@
 /*{-{*/
 
-C _HIST_H, _HIST_MAX, _hist_t=8;
-C _COUNTER_VAL;
-
-C do
-    #define ICON_H   50
-    #define HIST_H   40
-    #define HIST_MAX  4
-    typedef struct {
-        SDL_Texture* tex;
-        int counter;
-    } hist_t;
-    int COUNTER_VAL = 0;
-end
-
 class Counter with
-    event void          go_redraw;
-    event _SDL_Rect*    go_redim;
-    event _SDL_Point*   go_click;
-    event int           counter;
-    event void          ok_swap;
-
-    var _SDL_Rect  rect;
-    var _SDL_Texture* tex_img;      // parent *must* set it
-
-    C nohold _abs();
+    event void    go;
+    event int     counter;
+    var   UIGrid* grid;
 do
-    counter = _COUNTER_VAL;     // TODO: constructor
+    this.counter = 0;
 
-    var _SDL_Rect img_r;
-    var _SDL_Rect inc_r;
-    var _SDL_Rect dec_r;
+    var LuaGrid lg;
+        _lua_getglobal(global:lua, "grid_counter");    // [ t ]
+        lg.ref = _luaL_ref(global:lua, _LUA_REGISTRYINDEX);
+        emit lg.go;                             // [ ]
+    grid = &lg.grid;
 
-    var _hist_t[4] hist;
-    var int hist_0 = 0;
-    var int hist_n = 0;
-    var _SDL_Rect hist_r;
-        hist_r.w = _HIST_H * _HIST_MAX;
-        hist_r.h = _HIST_H;
-        loop i, _HIST_MAX do
-            hist[i].tex = null;
-        end
+    await/0 go;
+
+    event int hist_new;
+    var   int hist_cur;
 
     var _SDL_Color clr_fg;
         clr_fg.r = 0;
         clr_fg.g = 0;
         clr_fg.b = 0;
-    var _SDL_Color clr_bg;
-        clr_bg.r = 100;
-        clr_bg.g = 100;
-        clr_bg.b = 100;
 
-    var _SDL_Texture* tex_num = null;
-    var _SDL_Rect num_r;
-
-    var _char[5] str;
-    _sprintf(str, "%d%d", counter/10, counter%10);
-    _TTF_SizeText(global:font, str, &num_r.w, &num_r.h);
-    var int num_h_w = num_r.h*1000 / num_r.w;
-
-    par/or do
+    par do
         loop do
-            var _SDL_Point* pt = await go_click;
-
-            // inc
-            if _SDL_Rect_vs_Point(this._abs(&inc_r), pt) then
+            var int it = await lg.grid.ok_uiclicked;
+            if it == 1 then         // INC
                 emit global:go_sound = global:snd_click;
                 emit this.counter = counter+1;
-
-            // dec
-            else/if _SDL_Rect_vs_Point(this._abs(&dec_r), pt) then
+            else/if it == 3 then    // DEC
                 emit global:go_sound = global:snd_click;
                 emit this.counter = counter-1;
-
-            // swap
-            else/if _SDL_Rect_vs_Point(this._abs(&img_r), pt) then
-                emit global:go_sound = global:snd_swap;
-                emit this.ok_swap;
-
-            // hist
-            else
-                loop i, _HIST_MAX do
-                    if hist[i].tex != null then
-                        var _SDL_Rect r;
-                        r.x = hist_r.x + _HIST_H * i + 8;
-                        r.y = hist_r.y + 8;
-                        r.w = _HIST_H-16;
-                        r.h = _HIST_H-16;
-                        if _SDL_Rect_vs_Point(this._abs(&r), pt) then
-                            emit counter = hist[i].counter;
-                        end
-                    end
-                end
+            else/if it == 4 then
+                emit global:go_sound = global:snd_click;
+                emit counter = hist_cur;
             end
         end
     with
-        await this.counter;
+        hist_new = counter;
         loop do
             if counter < 0 then
                 counter = 0;
             end
 
-            emit go_redim = &this.rect;
+            var UITexture* d = new UITexture;
 
-            par/or do
-                await counter;
-            with
-                await 3s;
-                if hist[hist_n].tex != null then
-                    _SDL_DestroyTexture(hist[hist_n].tex);
-                    hist_0 = (hist_0 + 1) % _HIST_MAX;
-                end
-                hist[hist_n].counter = counter;
+            var _char[5] str;
+            _sprintf(str, "%d", counter);
 
-                _sprintf(str, "%d%d", counter/10, counter%10);
-                var _SDL_Surface* num_sfc :=
-                        _TTF_RenderText_Blended(global:font, str, clr_fg);
-                hist[hist_n].tex =
-                    _SDL_CreateTextureFromSurface(global:ren, num_sfc);
-                _SDL_FreeSurface(num_sfc);
+            var _SDL_Surface* sfc :=
+                    _TTF_RenderText_Blended(global:fnt_cnt, str, clr_fg);
+            d:tex := _SDL_CreateTextureFromSurface(global:ren, sfc);
+            d:tex_own? = 1;
+            emit d:go;
+            _SDL_FreeSurface(sfc);
 
-                hist_n = (hist_n + 1) % _HIST_MAX;
-                await FOREVER;
-            end
+            lg.grid.ui_ptr ::= d;
+            free lg.grid.uis[1];
+            emit lg.grid.go_ui = 1;
+
+            emit hist_new;
+            hist_new = counter;
+            await counter;
         end
     with
         loop do
-            var _SDL_Rect* r = await/0 go_redim;
-            this.rect = *r;
+            await hist_new;
+            hist_cur = hist_new;
 
-            // num
-                if r:w < r:h then
-                    num_r.w = r:w / 3;
-                    num_r.h = num_r.w * num_h_w / 1000;
-                else
-                    num_r.h = r:h / 3;
-                    num_r.w = num_r.h * 1000 / num_h_w;
-                end
-                num_r.x = (r:w - num_r.w) / 2;
-                num_r.y = (r:h - num_r.h) / 2;
+            var UITexture* d = new UITexture;
+                d:align_x = _UI_ALIGN_RIGHT;
+                d:align_y = _UI_ALIGN_BOTTOM;
 
-                _sprintf(str, "%d%d", counter/10, counter%10);
-                var _SDL_Surface* num_sfc :=
-                        _TTF_RenderText_Blended(global:font, str, clr_fg);
-                if tex_num != null then
-                    _SDL_DestroyTexture(tex_num);
-                end
-                tex_num =
-                    _SDL_CreateTextureFromSurface(global:ren, num_sfc);
-                _SDL_FreeSurface(num_sfc);
+            var _char[5] str;
+            _sprintf(str, "%d", hist_cur);
 
-            // img
-                img_r.w = num_r.h/2;
-                img_r.h = num_r.h/2;
-                img_r.x = num_r.x - img_r.w - 10;
-                img_r.y = num_r.y + img_r.h/2;
-            // inc
-                inc_r.w = num_r.h/2;
-                inc_r.h = num_r.h/2;
-                inc_r.x = (r:w - inc_r.w) / 2;
-                inc_r.y = num_r.y - inc_r.h - num_r.h/7;
-            //dec
-                dec_r.w = num_r.h/2;
-                dec_r.h = num_r.h/2;
-                dec_r.x = (r:w - dec_r.w) / 2;
-                dec_r.y = num_r.y + num_r.h - num_r.h/7;     // minus?
-            // hist
-                hist_r.x = (r:w - hist_r.w) / 2;
-                hist_r.y = r:h - _HIST_H;
-        end
-    with
-        do
-            var _SDL_Renderer* ren = global:ren;
+            var _SDL_Surface* sfc :=
+                    _TTF_RenderText_Blended(global:fnt_his, str, clr_fg);
+            d:tex := _SDL_CreateTextureFromSurface(global:ren, sfc);
+            d:tex_own? = 1;
+            emit d:go;
+            _SDL_FreeSurface(sfc);
+
+            lg.grid.ui_ptr ::= d;
+            free lg.grid.uis[3];
+            emit lg.grid.go_ui = 3;
+
             loop do
-                await go_redraw;
-                _SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
-                //_SDL_RenderDrawRect(ren, &this.rect);
-                _SDL_RenderCopy(ren, this.tex_img, null, this._abs(&img_r));
-                //_SDL_RenderDrawRect(ren, this._abs(&num_r));
-                _SDL_RenderCopy(ren, tex_num, null, this._abs(&num_r));
-                _SDL_RenderCopy(ren, global:tex_inc, null, this._abs(&inc_r));
-                _SDL_RenderCopy(ren, global:tex_dec, null, this._abs(&dec_r));
-
-                //_SDL_RenderDrawRect(ren, this._abs(&hist_r));
-                loop i, _HIST_MAX do
-                    var int j = (hist_0 + i) % _HIST_MAX;
-                    if hist[j].tex == null then
-                        break;
-                    end
-                    var _SDL_Rect r;
-                    r.x = hist_r.x + _HIST_H * i + 8;
-                    r.y = hist_r.y + 8;
-                    r.w = _HIST_H-16;
-                    r.h = _HIST_H-16;
-                    _SDL_RenderCopy(ren, hist[j].tex, null, this._abs(&r));
+                par/or do
+                    await hist_new;
+                with
+                    await 3s;
+                    break;
                 end
             end
-        end
-    end
-finally
-    if tex_num != null then
-        _SDL_DestroyTexture(tex_num);
-    end
-    loop i, _HIST_MAX do
-        if hist[i].tex then
-            _SDL_DestroyTexture(hist[i].tex);
         end
     end
 end

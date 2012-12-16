@@ -15,79 +15,71 @@ end
 @include(counter.ceu);
 
 class Player with
-    event void          go_redraw;
-    event _SDL_Rect*    go_redim;
-    event _SDL_Point*   go_click;
-    var   _SDL_Rect rect;
-    var   int n;
-    C nohold _abs();
+    interface UI;
+    var int n;
 do
     n = 0;
 
-    _COUNTER_VAL = 20;
+    await/0 go;
+
     var int life? = 1;
     var Counter life;
-        life.tex_img = global:tex_life;
+        life.counter = 20;
+        emit life.go;
 
-    _COUNTER_VAL = 0;
     var int poison? = 0;
     var Counter poison;
-        poison.tex_img = global:tex_poison;
+        poison.counter = 0;
+        emit poison.go;
 
     // color
-    event _SDL_Point* go_ico;
+    event void go_ico;
     var _SDL_Rect ico_r;
+    _SDL_QueryTexture(global:tex_icos[0], null, null, &ico_r.w, &ico_r.h);
+
+    // swap
+    var _SDL_Rect swp_r;
+    _SDL_QueryTexture(global:tex_life, null, null, &swp_r.w, &swp_r.h);
 
     par/or do
+        var _SDL_Rect* r = await/0 go_redim;
         loop do
-            var _SDL_Rect* r = await/0 go_redim;
             this.rect = *r;
 
             // ico
-                var int min;
-                if r:w < r:h then
-                    min = r:w;
-                else
-                    min = r:h;
-                end
-                ico_r.x = min / 20;
-                ico_r.y = min / 20;
-                ico_r.w = min / 5;
-                ico_r.h = min / 5;
+                ico_r.x = rect.x + global:win_rect.w/100;
+                ico_r.y = rect.y + global:win_rect.h/100;
 
-            emit life.go_redim = r;
-            emit poison.go_redim = r;
+            emit life.grid:go_redim = r;
+            emit poison.grid:go_redim = r;
+
+            // swp
+                var _SDL_Rect* rd = &life.grid:ui_rects[1];
+                swp_r.x = rd:x - swp_r.w - rd:w/10;
+                swp_r.y = rd:y + (rd:h-swp_r.h)/2;
+
+            r = await go_redim;
         end
     with
         loop do
-            var _SDL_Point* pt = await go_click;
-            if _SDL_Rect_vs_Point(this._abs(&ico_r),pt) then
+            var _SDL_MouseButtonEvent* but = await go_mousebuttondown;
+
+            if _SDL_Rect_vs_Mouse(&ico_r,but) then
                 emit global:go_sound = global:snd_swap;
-                emit go_ico;
+                _CLRS_cur[this.n] = (_CLRS_cur[n] + 1) % 5;
+
+            else/if _SDL_Rect_vs_Mouse(&swp_r,but) then
+                emit global:go_sound = global:snd_swap;
+                life?   = not life?;
+                poison? = not poison?;
+
             else/if life? then
-                emit life.go_click = pt;
+                emit life.grid:go_mousebuttondown = but;
             else/if poison? then
-                emit poison.go_click = pt;
+                emit poison.grid:go_mousebuttondown = but;
             end
-        end
-    with
-        loop do
-            par/or do
-                await life.ok_swap;
-            with
-                await poison.ok_swap;
-            end
-            life?   = not life?;
-            poison? = not poison?;
         end
      with
-
-        // SWITCH COLORS
-        loop do
-            await go_ico;
-            _CLRS_cur[this.n] = (_CLRS_cur[n] + 1) % 5;
-        end
-    with
 
         // REDRAW
         do
@@ -106,16 +98,16 @@ do
                 _SDL_RenderDrawRect(ren, &this.rect);
 
                 // color
-                _SDL_SetRenderDrawColor(ren, 0, 0, 0, 0);
-                //_SDL_RenderDrawRect(ren, this._abs(&ico_r));
-                _SDL_RenderCopy(ren, _ICOS[_CLRS_cur[this.n]],
-                                    null, this._abs(&ico_r));
+                _SDL_RenderCopy(ren, global:tex_icos[_CLRS_cur[this.n]],
+                                    null, &ico_r);
 
                 // life / poison
                 if life? then
-                    emit life.go_redraw;
+                    _SDL_RenderCopy(ren, global:tex_life, null, &swp_r);
+                    emit life.grid:go_redraw;
                 else/if poison? then
-                    emit poison.go_redraw;
+                    _SDL_RenderCopy(ren, global:tex_poison, null, &swp_r);
+                    emit poison.grid:go_redraw;
                 end
             end
         end

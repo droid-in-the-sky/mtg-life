@@ -4,13 +4,14 @@ Features:
 
 - life & poison counters
 - 1, 2, 3, or 4 players
+- dice rolling
 - history of last changes
 - colors to identify players
 - low battery consumption
 - open source
-- free
+- free (really!)
     - no restrictions
-    - no ads (really!)
+    - no ads
 
 Please, feel free to send us feedback:
 
@@ -19,3 +20,5 @@ droid.in.the.sky@gmail.com
 The source code is available in GitHub:
 
 https://github.com/droid-in-the-sky/mtg-life
+
+keywords: magic, mtg, life, poison, counter, dice

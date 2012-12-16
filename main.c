@@ -5,11 +5,15 @@
 #include "SDL_image.h"
 #include "SDL_mixer.h"
 #include "SDL_ttf.h"
+#include "SDL_opengles.h"
+#define printf(args...)     __android_log_print(4, "SDL", ## args);
+#define fprintf(x, args...) __android_log_print(4, "SDL", ## args);
 #else
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
 #include "SDL2/SDL_mixer.h"
 #include "SDL2/SDL_ttf.h"
+#include "SDL2/SDL_opengl.h"
 #endif
 
 #include <stdint.h>
@@ -24,8 +28,9 @@ typedef uint8_t   u8;
 
 #include "_ceu_defs.h"
 
-#ifndef IN_SDL_DT
 s32 WCLOCK_nxt;
+
+#ifndef IN_SDL_DT
 #define ceu_out_wclock(us) WCLOCK_nxt = us;
 #endif
 
@@ -69,9 +74,10 @@ int main (int argc, char *argv[])
     {
 #ifndef SDL_SIMUL
 
-        s32 tm = 0;
+        s32 tm = -1;
 #ifdef CEU_WCLOCKS
-        tm = WCLOCK_nxt / 1000;
+        if (WCLOCK_nxt != CEU_WCLOCK_NONE)
+            tm = WCLOCK_nxt / 1000;
 #endif
 #ifdef CEU_ASYNCS
         if (ASYNC_nxt)
@@ -79,6 +85,7 @@ int main (int argc, char *argv[])
 #endif
 
         int has = SDL_WaitEventTimeout(&evt, tm);
+//printf("...\n");
 
 #if defined(CEU_WCLOCKS) || defined(CEU_ASYNCS)
         u32 now = SDL_GetTicks();
@@ -87,56 +94,56 @@ int main (int argc, char *argv[])
         // OTHER EVENTS
         if (has)
         {
+            int s = 0;
+//printf("EVT: %d\n", evt.type);
             switch (evt.type) {
 #ifdef IN_SDL_QUIT
                 case SDL_QUIT:
-                    if (ceu_go_event(&ret, IN_SDL_QUIT, NULL))
-                        goto END;
+                    s = ceu_go_event(&ret, IN_SDL_QUIT, NULL);
+                    break;
+#endif
+#ifdef IN_SDL_WINDOWEVENT
+                case SDL_WINDOWEVENT:
+                    s = ceu_go_event(&ret, IN_SDL_WINDOWEVENT, &evt);
                     break;
 #endif
 #ifdef IN_SDL_KEYDOWN
-                case SDL_KEYDOWN: {
-                    if (ceu_go_event(&ret, IN_SDL_KEYDOWN, &evt))
-                        goto END;
+                case SDL_KEYDOWN:
+                    s =  ceu_go_event(&ret, IN_SDL_KEYDOWN, &evt);
                     break;
-                }
 #endif
 #ifdef IN_SDL_KEYUP
-                case SDL_KEYUP: {
-                    if (ceu_go_event(&ret, IN_SDL_KEYUP, &evt))
-                        goto END;
+                case SDL_KEYUP:
+                    s = ceu_go_event(&ret, IN_SDL_KEYUP, &evt);
                     break;
-                }
+#endif
+#ifdef IN_SDL_TEXTINPUT
+                case SDL_TEXTINPUT:
+                    s = ceu_go_event(&ret, IN_SDL_TEXTINPUT, &evt);
+                    break;
+#endif
+#ifdef IN_SDL_TEXTEDITING
+                case SDL_TEXTEDITING:
+                    s = ceu_go_event(&ret, IN_SDL_TEXTEDITING, &evt);
+                    break;
 #endif
 #ifdef IN_SDL_MOUSEMOTION
-                case SDL_MOUSEMOTION: {
-                    if (ceu_go_event(&ret, IN_SDL_MOUSEMOTION, &evt))
-                        goto END;
+                case SDL_MOUSEMOTION:
+                    s = ceu_go_event(&ret, IN_SDL_MOUSEMOTION, &evt);
                     break;
-                }
 #endif
 #ifdef IN_SDL_MOUSEBUTTONDOWN
-                case SDL_MOUSEBUTTONDOWN: {
-                    if (ceu_go_event(&ret, IN_SDL_MOUSEBUTTONDOWN, &evt))
-                        goto END;
+                case SDL_MOUSEBUTTONDOWN:
+                    s = ceu_go_event(&ret, IN_SDL_MOUSEBUTTONDOWN, &evt);
                     break;
-                }
 #endif
 #ifdef IN_SDL_MOUSEBUTTONUP
-                case SDL_MOUSEBUTTONUP: {
-                    if (ceu_go_event(&ret, IN_SDL_MOUSEBUTTONUP, &evt))
-                        goto END;
+                case SDL_MOUSEBUTTONUP:
+                    s = ceu_go_event(&ret, IN_SDL_MOUSEBUTTONUP, &evt);
                     break;
-                }
-#endif
-#ifdef IN_SDL_WINDOWEVENT
-                case SDL_WINDOWEVENT: {
-                    if (ceu_go_event(&ret, IN_SDL_WINDOWEVENT, &evt))
-                        goto END;
-                    break;
-                }
 #endif
             }
+            if (s) goto END;
         }
 
 #if defined(CEU_WCLOCKS) || defined(CEU_ASYNCS)
@@ -148,10 +155,11 @@ int main (int argc, char *argv[])
         if (WCLOCK_nxt != CEU_WCLOCK_NONE) {
             s32 nxt;
             int s = ceu_go_wclock(&ret, 1000*dt, &nxt);
-            while (nxt <= 0)
+            if (s) goto END;
+            while (nxt <= 0) {
                 s = ceu_go_wclock(&ret, 0, &nxt);
-            if (s)
-                goto END;
+                if (s) goto END;
+            }
         }
 #endif
 
@@ -165,7 +173,7 @@ int main (int argc, char *argv[])
             goto END;
 #endif
 
-#endif  // CEU_SIMUL
+#endif  // SDL_SIMUL
 
 #ifdef CEU_ASYNCS
         if (ASYNC_nxt) {
